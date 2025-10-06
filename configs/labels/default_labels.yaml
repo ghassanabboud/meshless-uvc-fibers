@@ -1,0 +1,9 @@
+RV_endo_label: 2
+LV_endo_label: 3
+epi_label: 1
+base_label: 4
+#these septal labels do not need to be defined in the input border file,they are used
+#internally once the septal surfaces are extracted and are defined here to ensure
+#they are not overwritten by the other defaults
+septal_rv_label: 5
+septal_lv_label: 6

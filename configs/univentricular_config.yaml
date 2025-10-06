@@ -1,0 +1,106 @@
+defaults:
+  - angles: Doste_2019
+  - labels: default_labels
+  - _self_
+
+debug: true
+calculate_fiber: true
+calculate_sheet: false
+calculate_transverse: false
+device: cpu
+prepare_h5: true
+intervalvular_threshold: 0.1 # only used for RVOT
+bridge_rotation_angle: 20.0 # only used for RVOT
+
+files:
+  volume_path: RV_with_OT/volume.mha
+  border_path: RV_with_OT/border.mha
+  apex_path: null
+  rotational_reference_path: RV_with_OT/RVOT_rot_ref_middle_septum.fcsv
+  pulmonary_path: RV_with_OT/pulmonary_valve_RVOT.fcsv # only used for RVOT 
+  tricuspid_path: RV_with_OT/tricuspid_valve_RVOT.fcsv # only used for RVOT 
+
+smooth:
+  use: true
+  iter: 200
+  lambda_param: 0.99
+
+doste: #only used for RVOT 
+  theta: 20
+  x0: 0.2
+
+
+hydra:
+  help:
+    header: ============== Definition of Myocardial Fiber Orientation on Meshless Biventricular Grids Using Rule-Based Methods ==============
+
+    footer: |-
+      Powered by Hydra (https://hydra.cc)
+      Use --hydra-help to view Hydra specific help
+
+    template: |-
+      ${hydra.help.header}
+
+      == Changing Parameters ==
+
+      Parameters can be changed in the "configs/ventricles_config.yaml" file. You can also use the command line to override parameters, for example:
+      python run_ventricles.py save_coords=true files.volume_path=/path/to/volume.mha files.border_path=/path/to/border.mha
+
+      == Parameter Descriptions ==
+
+      - debug: (bool) whether to display debug information in log and save intermediate files for debugging.
+      - calculate_fiber: (bool) whether to calculate the fiber orientation. if false, the script stops at calculating UVCs
+      - calculate_sheet: (bool) whether to calculate the sheet normal vectors.
+      - calculate_transverse: (bool) whether to calculate the transverse vectors.
+      - device: (str) device to use for computation, only "cpu" is supported for now as bi-eikonal calculations are not yet implemented on GPU.
+      - prepare_h5: (bool) whether to generate an .h5 file containing the grid and the associated fibers. Can be used as input to the LBM pipeline.
+      - intervalvular_threshold: (float) threshold to extract the RV bridge between pulmonary and tricuspid valves.  Higher values will result in a larger bridge.
+      - bridge_rotation_angle: (float) angle that defines the start point for the path linking the tricuspid and pulmonary valves. Higher values will lead to a bridge closer to the septum.
+
+      - files:
+          - volume_path: (str) path to the input volume file. This is a .mha file where voxels with nonzero values are considered part of the heart. The rest of the voxels are considered background.
+          - border_path: (str) path to the input border file. This is a .mha file where only voxels belonging to the endocardium, epicardium and base have nonzero values. The labels for each region are defined in the `labels` config.
+          - apex_path: (str) path to the input apex file. This is a .fcsv file containing the coordinates of an apex point on the epicardial surface. If null, the apex will be extracted automatically.
+          - rotational_reference_path: (str) path to the input rotational reference file. This is a .fcsv file containing the coordinates to a single point that defines the plane of the rotational coordinate discontinuity. This can be a landmark that is consistent across all patients for your project. This can be a landmark that is consistent across all patients for your project. To use the AHA 17 segment functionality in the LV case, this point should be on the posterior LV-RV intersection.
+          - pulmonary_path: (str) path to the input pulmonary valve file. This is a .fcsv file containing the coordinates of a point closer to the pulmonary valve than the tricuspid one. Only used for run_RVOT.py to partition the base into the two valves. can keep it null for other scripts.
+          - tricuspid_path: (str) path to the input tricuspid valve file. This is a .fcsv file containing the coordinates of a point closer to the tricuspid valve than the pulmonary one. Only used for run_RVOT.py to partition the base into the two valves. can keep it null for other scripts.
+
+      - smooth:
+          - use: (bool) whether to apply Laplacian smoothing to reduce cusps in the eikonal coordinate fields. Highly recommended though it lengthens runtime.
+          - iter: (int) number of iterations for the smoothing algorithm.
+          - lambda_param: (float) smoothing parameter, between 0 and 1. Closer to 1 means more smoothing.
+
+      - doste:
+          - theta: (float) parameter of the sigmoid function used to adjust the w_function in Doste's method for fibers around the RVOT. Higher values will lead to a more abrupt transition between RVOT and RV fibers.
+          - x0: (float) parameter of the sigmoid function used to adjust the w_function in Doste's method for fibers around the RVOT. between 0 and 1. Closer to 1 means circumferential fibers farther from the RVOT.
+
+      To these parameters are added those of the selected configuration groups: angles and labels.
+
+      - angles:
+          - alpha_LV_endo: (float) helix angle to rotate longitudinal fibers in the LV endocardium
+          - alpha_LV_epi: (float) helix angle to rotate longitudinal fibers in the LV epicardium
+          - alpha_RV_endo: (float) helix angle to rotate longitudinal fibers in the RV endocardium
+          - alpha_RV_epi: (float) helix angle to rotate longitudinal fibers in the RV epicardium
+          - alpha_OT_endo: (float) helix angle to rotate longitudinal fibers in the RVOT endocardium
+          - alpha_OT_epi: (float) helix angle to rotate longitudinal fibers in the RVOT epicardium
+          - alpha_septal: not used in univentricular scripts.
+          - beta_LV_endo: (float) transverse angle to rotate fibers in the LV endocardium
+          - beta_LV_epi: (float) transverse angle to rotate fibers in the LV epicardium
+      - labels:
+          - RV_endo_label: (int) label for the endocardium of the right ventricle in the border file
+          - LV_endo_label: (int) label for the endocardium of the left ventricle in the border file
+          - epi_label: (int) label for the epicardium in the border file
+          - base_label: (int) label for the base in the border file
+          - septal_rv_label: not used in univentricular scripts
+          - septal_lv_label: not used in univentricular scripts
+          
+      == Configuration Groups ==
+
+      Groups are used in hydra to organize bundles of parameters. For example, this method supports different groups for the alpha and beta angles used in fiber orientation, as well as the labels in the tagged border file.
+      You can even create your own groups in the appropriate folder of the `configs` directory. Here are the currently available groups:
+
+      $APP_CONFIG_GROUPS
+
+      For angles, it is recommended to use the Doste_2019 group with angles deduced from anatomical studies, it is used by default. The Bayer_2012 uses the same angles for the LV, RV and RVOT and is thus less realistic.
+      
+      ${hydra.help.footer}

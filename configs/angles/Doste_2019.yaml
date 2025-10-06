@@ -1,0 +1,14 @@
+alpha_LV_endo: -60
+alpha_LV_epi: 60
+alpha_RV_endo: 90
+alpha_RV_epi: -25
+alpha_OT_endo: 90
+alpha_OT_epi: 0
+alpha_septal: 16.25
+beta_LV_endo: -20
+beta_LV_epi: 20
+beta_RV_endo: 0
+beta_RV_epi: 20
+beta_OT_endo: 0
+beta_OT_epi: 0
+beta_septal: 0

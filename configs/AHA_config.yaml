@@ -1,0 +1,30 @@
+defaults:
+  - _self_
+  - override hydra/hydra_logging: disabled
+  - override hydra/job_logging: disabled
+
+apicobasal_path: null
+rotational_path: null
+
+hydra:
+  help:
+    header: ============== 17-segment model definition for the LV based on UVCs ==============
+
+    footer: |-
+      Powered by Hydra (https://hydra.cc)
+      Use --hydra-help to view Hydra specific help
+
+    template: |-
+      ${hydra.help.header}
+
+      == Changing Parameters ==
+
+      Parameters can be changed in the "configs/ventricles_config.yaml" file. You can also use the command line to override parameters, for example:
+      python define_AHA_segments.py apicobasal_path=outputs/p01/uvc/apicobasal.pkl transmural_path=outputs/p01/uvc/transmural.pkl rotational_path=outputs/p01/uvc/rotational.pkl hydra.run.dir=outputs/p01/
+
+      == Parameter Descriptions ==
+
+      - apicobasal_path: (str) path to the apicobasal pickle file. it is the output of the run_LV.py pipeline
+      - rotational_path: (str) path to the rotational pickle file. it is the output of the run_LV.py pipeline  
+
+      ${hydra.help.footer}
